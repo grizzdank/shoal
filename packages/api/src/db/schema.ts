@@ -1,4 +1,4 @@
-import { boolean, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 const now = timestamp('created_at', { withTimezone: true }).notNull().default(sql`now()`);
@@ -9,6 +9,7 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   name: text('name').notNull(),
   role: text('role').notNull(),
+  authProvider: text('auth_provider').notNull(),
   createdAt: now,
   updatedAt: updatedNow,
 });
@@ -16,18 +17,19 @@ export const users = pgTable('users', {
 export const agents = pgTable('agents', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
-  description: text('description').notNull(),
-  enabled: boolean('enabled').notNull().default(true),
-  ownerId: uuid('owner_id').notNull(),
+  systemPrompt: text('system_prompt').notNull(),
+  model: text('model').notNull(),
+  channels: jsonb('channels').notNull().default(sql`'[]'::jsonb`),
+  toolPermissions: jsonb('tool_permissions').notNull().default(sql`'{}'::jsonb`),
+  status: text('status').notNull(),
   createdAt: now,
   updatedAt: updatedNow,
 });
 
 export const policies = pgTable('policies', {
   id: uuid('id').defaultRandom().primaryKey(),
-  name: text('name').notNull(),
   type: text('type').notNull(),
-  rules: jsonb('rules').notNull(),
+  rulesJson: jsonb('rules_json').notNull(),
   enabled: boolean('enabled').notNull().default(true),
   createdAt: now,
   updatedAt: updatedNow,
@@ -35,32 +37,30 @@ export const policies = pgTable('policies', {
 
 export const auditEntries = pgTable('audit_entries', {
   id: uuid('id').defaultRandom().primaryKey(),
-  actorType: text('actor_type').notNull(),
   actorId: text('actor_id').notNull(),
+  actorType: text('actor_type').notNull(),
   action: text('action').notNull(),
-  targetType: text('target_type').notNull(),
-  targetId: text('target_id').notNull(),
-  metadata: jsonb('metadata').notNull().default(sql`'{}'::jsonb`),
+  detail: text('detail').notNull(),
+  costTokens: integer('cost_tokens').notNull().default(0),
   createdAt: now,
 });
 
 export const approvalRequests = pgTable('approval_requests', {
   id: uuid('id').defaultRandom().primaryKey(),
+  agentId: uuid('agent_id').notNull(),
+  actionType: text('action_type').notNull(),
+  params: jsonb('params').notNull().default(sql`'{}'::jsonb`),
   state: text('state').notNull(),
-  requestedBy: uuid('requested_by').notNull(),
-  approverId: uuid('approver_id'),
-  reason: text('reason').notNull(),
-  payload: jsonb('payload').notNull().default(sql`'{}'::jsonb`),
-  createdAt: now,
-  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+  requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().default(sql`now()`),
+  decidedBy: uuid('decided_by'),
 });
 
 export const documents = pgTable('documents', {
   id: uuid('id').defaultRandom().primaryKey(),
-  title: text('title').notNull(),
-  path: text('path').notNull(),
-  contentType: text('content_type').notNull(),
+  filename: text('filename').notNull(),
+  mimeType: text('mime_type').notNull(),
+  size: integer('size').notNull(),
   uploadedBy: uuid('uploaded_by').notNull(),
-  metadata: jsonb('metadata').notNull().default(sql`'{}'::jsonb`),
+  storagePath: text('storage_path').notNull(),
   createdAt: now,
 });

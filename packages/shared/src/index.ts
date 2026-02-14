@@ -6,21 +6,20 @@ export enum UserRole {
 
 export enum PolicyType {
   contentFilter = 'content_filter',
-  toolPermission = 'tool_permission',
-  approvalGate = 'approval_gate',
-  dataRetention = 'data_retention',
+  toolRestriction = 'tool_restriction',
+  approvalRequired = 'approval_required',
 }
 
 export enum ApprovalState {
   pending = 'pending',
   approved = 'approved',
-  denied = 'denied',
+  rejected = 'rejected',
+  expired = 'expired',
 }
 
 export enum ActorType {
   user = 'user',
   agent = 'agent',
-  system = 'system',
 }
 
 export type User = {
@@ -28,6 +27,7 @@ export type User = {
   email: string;
   name: string;
   role: UserRole;
+  authProvider: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -35,18 +35,19 @@ export type User = {
 export type Agent = {
   id: string;
   name: string;
-  description: string;
-  enabled: boolean;
-  ownerId: string;
+  systemPrompt: string;
+  model: string;
+  channels: string[];
+  toolPermissions: Record<string, unknown>;
+  status: string;
   createdAt: Date;
   updatedAt: Date;
 };
 
 export type Policy = {
   id: string;
-  name: string;
   type: PolicyType;
-  rules: Record<string, unknown>;
+  rulesJson: Record<string, unknown>;
   enabled: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -54,32 +55,30 @@ export type Policy = {
 
 export type AuditEntry = {
   id: string;
-  actorType: ActorType;
   actorId: string;
+  actorType: ActorType;
   action: string;
-  targetType: string;
-  targetId: string;
-  metadata: Record<string, unknown>;
+  detail: string;
+  costTokens: number;
   createdAt: Date;
 };
 
 export type ApprovalRequest = {
   id: string;
+  agentId: string;
+  actionType: string;
+  params: Record<string, unknown>;
   state: ApprovalState;
-  requestedBy: string;
-  approverId: string | null;
-  reason: string;
-  payload: Record<string, unknown>;
-  createdAt: Date;
-  resolvedAt: Date | null;
+  requestedAt: Date;
+  decidedBy: string | null;
 };
 
 export type Document = {
   id: string;
-  title: string;
-  path: string;
-  contentType: string;
+  filename: string;
+  mimeType: string;
+  size: number;
   uploadedBy: string;
-  metadata: Record<string, unknown>;
+  storagePath: string;
   createdAt: Date;
 };

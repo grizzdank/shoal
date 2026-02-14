@@ -1,0 +1,12 @@
+.git
+.beads
+node_modules
+**/node_modules
+dist
+**/dist
+.next
+**/.next
+coverage
+**/coverage
+*.log
+.DS_Store

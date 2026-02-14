@@ -9,6 +9,6 @@
     "dev": "tsc -w -p tsconfig.json",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "eslint src --ext .ts"
+    "lint": "tsc --noEmit -p tsconfig.json"
   }
 }

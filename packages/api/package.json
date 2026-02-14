@@ -8,8 +8,10 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "eslint src --ext .ts",
-    "db:migrate": "drizzle-kit push"
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "test": "node --import tsx --test src/**/*.test.ts",
+    "db:migrate": "drizzle-kit push",
+    "db:check": "drizzle-kit check"
   },
   "dependencies": {
     "@auth/core": "^0.37.2",

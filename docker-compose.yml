@@ -1,18 +1,37 @@
 services:
   api:
-    build: ./packages/api
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
     ports: ['3001:3001']
-    depends_on: [postgres, redis]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://shoal:shoal_dev@postgres:5432/shoal
       REDIS_URL: redis://redis:6379
+      DASHBOARD_ORIGIN: http://localhost:3000
+      AUTH_SECRET: shoal_local_dev_secret_change_me
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3001/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   dashboard:
-    build: ./packages/dashboard
+    build:
+      context: .
+      dockerfile: packages/dashboard/Dockerfile
     ports: ['3000:3000']
-    depends_on: [api]
+    depends_on:
+      api:
+        condition: service_healthy
     environment:
       NEXT_PUBLIC_API_URL: http://api:3001
+      AUTH_SECRET: shoal_local_dev_secret_change_me
+      AUTH_URL: http://localhost:3000
 
   postgres:
     image: postgres:17
@@ -22,10 +41,20 @@ services:
       POSTGRES_PASSWORD: shoal_dev
     ports: ['5432:5432']
     volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U shoal -d shoal']
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
     ports: ['6379:6379']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   openclaw:
     image: ghcr.io/openclaw/openclaw:latest

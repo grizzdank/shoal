@@ -48,11 +48,22 @@ shoal/
 pnpm install
 ```
 
-### 2) Start infrastructure/services via Docker
+### 2) Start infrastructure/services via Docker (recommended)
 
 ```bash
 docker compose up --build
 ```
+
+This boots:
+- `dashboard` on `http://localhost:3000`
+- `api` on `http://localhost:3001`
+- `postgres` on `localhost:5432`
+- `redis` on `localhost:6379`
+- `openclaw` on `http://localhost:8080`
+
+Compose now includes healthchecks and startup ordering:
+- `api` waits for Postgres + Redis health
+- `dashboard` waits for API health
 
 ### 3) Run workspace dev servers locally
 
@@ -64,9 +75,12 @@ pnpm dev
 
 ```bash
 pnpm build
+pnpm test
 pnpm typecheck
 pnpm lint
 pnpm db:migrate
+pnpm db:check
+pnpm ci:check
 ```
 
 ## Notes
@@ -74,3 +88,4 @@ pnpm db:migrate
 - TypeScript strict mode is enabled from root config.
 - ESM is used across all packages.
 - Plugin package intentionally avoids OpenClaw runtime dependency and uses local type stubs.
+- Docker images build from monorepo root context with package-specific Dockerfiles.
