@@ -82,3 +82,5 @@ export type Document = {
   storagePath: string;
   createdAt: Date;
 };
+
+export * from './policy.js';

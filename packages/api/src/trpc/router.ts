@@ -18,6 +18,7 @@ import {
 } from '../policies/engine.js';
 import { logAuditEvent } from '../audit/logging.js';
 import { canTransitionApprovalState } from '../approvals/state.js';
+import { getConstraints } from '../governance/service.js';
 
 type TrpcContext = {
   authHeader: string | null;
@@ -281,6 +282,26 @@ const policiesRouter = t.router({
       });
       return result;
     }),
+});
+
+const policyRouter = t.router({
+  queryConstraints: memberProcedure
+    .input(
+      z.object({
+        agentId: z.string().min(1),
+        role: z.enum(['admin', 'member', 'viewer']).nullable(),
+        actionType: z.string().min(1),
+      }),
+    )
+    .query(async ({ input }) =>
+      getConstraints(
+        {
+          agentId: input.agentId,
+          role: input.role,
+        },
+        input.actionType,
+      ),
+    ),
 });
 
 const auditRouter = t.router({
@@ -637,6 +658,7 @@ export const appRouter = t.router({
   users: usersRouter,
   agents: agentsRouter,
   policies: policiesRouter,
+  policy: policyRouter,
   audit: auditRouter,
   approvals: approvalsRouter,
   documents: documentsRouter,

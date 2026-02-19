@@ -1,19 +1,12 @@
 import { and, eq } from 'drizzle-orm';
 import { db } from '../db/client.js';
-import { approvalRequests, policies } from '../db/schema.js';
-import {
-  evaluateApprovalPolicies,
-  evaluateContentPolicies,
-  evaluateToolPolicies,
-} from '../policies/engine.js';
+import type { Principal } from '@shoal/shared';
+import { policies } from '../db/schema.js';
+import { evaluateContentPolicies } from '../policies/engine.js';
 import { logAuditEvent } from '../audit/logging.js';
+import { NativePolicyEngine } from '../policies/native-engine.js';
 
-type Role = 'admin' | 'member' | 'viewer' | null;
-
-function toJsonRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
-  return value as Record<string, unknown>;
-}
+const policyBackend = new NativePolicyEngine(db);
 
 export async function evaluateMessageContent(input: {
   text: string;
@@ -37,77 +30,27 @@ export async function evaluateMessageContent(input: {
 
 export async function evaluateToolCall(input: {
   actorId: string;
-  role: Role;
+  role: 'admin' | 'member' | 'viewer' | null;
   agentId: string;
   actionType: string;
   toolName: string;
   params: Record<string, unknown>;
 }) {
-  const toolPolicies = await db
-    .select({ rulesJson: policies.rulesJson })
-    .from(policies)
-    .where(and(eq(policies.enabled, true), eq(policies.type, 'tool_restriction')));
-  const toolRules = toolPolicies.map((policy) => policy.rulesJson as Record<string, unknown>);
-  const toolResult = evaluateToolPolicies(input.toolName, input.role, toolRules);
-  if (!toolResult.allowed) {
-    await logAuditEvent({
-      actorId: input.actorId,
-      actorType: 'agent',
-      action: 'policy.tool.blocked',
-      detail: JSON.stringify({
-        toolName: input.toolName,
-        reasons: toolResult.reasons,
-      }),
-    });
-    return { blocked: true, reasons: toolResult.reasons, approvalId: null };
-  }
-
-  const approvalPolicies = await db
-    .select({ rulesJson: policies.rulesJson })
-    .from(policies)
-    .where(and(eq(policies.enabled, true), eq(policies.type, 'approval_required')));
-  const approvalRules = approvalPolicies.map((policy) => policy.rulesJson as Record<string, unknown>);
-  const approvalEval = evaluateApprovalPolicies(
-    input.actionType,
-    input.toolName,
-    input.role,
-    approvalRules,
-  );
-
-  if (!approvalEval.requiresApproval) {
-    await logAuditEvent({
-      actorId: input.actorId,
-      actorType: 'agent',
-      action: 'approval.tool_call.not_required',
-      detail: JSON.stringify({ toolName: input.toolName }),
-    });
-    return { blocked: false, reasons: [], approvalId: null };
-  }
-
-  const [created] = await db
-    .insert(approvalRequests)
-    .values({
-      agentId: input.agentId,
-      actionType: input.actionType,
-      params: {
-        ...toJsonRecord(input.params),
-        toolName: input.toolName,
-      },
-      state: 'pending',
-      decidedBy: null,
-    })
-    .returning();
-  await logAuditEvent({
-    actorId: input.actorId,
-    actorType: 'agent',
-    action: 'approval.tool_call.pending',
-    detail: JSON.stringify({
-      approvalId: created.id,
-      toolName: input.toolName,
-      reasons: approvalEval.reasons,
-    }),
+  const decision = await policyBackend.evaluate({
+    principal: { agentId: input.agentId, role: input.role },
+    actionType: input.actionType,
+    toolName: input.toolName,
+    params: input.params,
   });
-  return { blocked: true, reasons: approvalEval.reasons, approvalId: created.id };
+  return {
+    blocked: !decision.permitted,
+    reasons: decision.reasons,
+    approvalId: decision.approvalId ?? null,
+  };
+}
+
+export async function getConstraints(principal: Principal, actionType: string) {
+  return policyBackend.queryConstraints(principal, actionType);
 }
 
 export async function logToolResult(input: {
