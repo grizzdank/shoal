@@ -1,0 +1,115 @@
+{
+  "policies": [
+    {
+      "type": "content_filter",
+      "enabled": true,
+      "rulesJson": {
+        "blockedTerms": [
+          "client_secret",
+          "api_key",
+          "password",
+          "private_key"
+        ],
+        "blockOnPii": true,
+        "piiPatterns": []
+      },
+      "description": "Block outbound messages containing secrets or PII"
+    },
+    {
+      "type": "tool_restriction",
+      "enabled": true,
+      "rulesJson": {
+        "denyTools": [
+          "exec_rm_rf",
+          "git_force_push"
+        ],
+        "allowTools": [],
+        "rolesAllowed": []
+      },
+      "description": "Block destructive operations globally"
+    },
+    {
+      "type": "tool_restriction",
+      "enabled": true,
+      "rulesJson": {
+        "denyTools": [],
+        "allowTools": [
+          "web_search",
+          "web_fetch",
+          "message",
+          "Read",
+          "memory_search",
+          "memory_get"
+        ],
+        "rolesAllowed": ["member", "viewer"]
+      },
+      "description": "Non-admin users limited to read-only and messaging tools"
+    },
+    {
+      "type": "approval_required",
+      "enabled": true,
+      "rulesJson": {
+        "actionTypes": ["tool_call"],
+        "toolNames": [
+          "gateway",
+          "exec"
+        ],
+        "rolesRequiringApproval": ["member"]
+      },
+      "description": "Member role needs approval for gateway changes and shell execution"
+    },
+    {
+      "type": "content_filter",
+      "enabled": true,
+      "rulesJson": {
+        "blockedTerms": [
+          "social security",
+          "bank account",
+          "routing number",
+          "credit card"
+        ],
+        "blockOnPii": true,
+        "piiPatterns": [
+          "\\b\\d{4}[- ]?\\d{4}[- ]?\\d{4}[- ]?\\d{4}\\b"
+        ]
+      },
+      "description": "Financial data protection - block credit card numbers and financial PII"
+    }
+  ],
+  "agents": [
+    {
+      "name": "pulpito",
+      "systemPrompt": "Pulpito - LFG Consulting AI assistant",
+      "model": "anthropic/claude-opus-4-6",
+      "channels": ["signal", "webchat", "slack"],
+      "toolPermissions": {},
+      "status": "active"
+    },
+    {
+      "name": "sue-assistant",
+      "systemPrompt": "LFG Consulting assistant for Sue Weinberger - business operations focus",
+      "model": "anthropic/claude-sonnet-4-6",
+      "channels": ["slack"],
+      "toolPermissions": {
+        "exec": false,
+        "gateway": false,
+        "Write": false
+      },
+      "status": "active"
+    }
+  ],
+  "users": [
+    {
+      "email": "dave@lfgconsultants.com",
+      "name": "Dave Graham",
+      "role": "admin",
+      "authProvider": "google"
+    },
+    {
+      "email": "sue@lfgconsultants.com",
+      "name": "Sue Weinberger",
+      "role": "member",
+      "authProvider": "google"
+    }
+  ]
+}
