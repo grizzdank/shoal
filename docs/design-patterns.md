@@ -134,3 +134,33 @@ Miriad provides data points for the Shoal narrative:
 
 *Last updated: 2026-02-14*
 *Sources: Miriad design-notes (MIT), Nuum README (MIT), miriad.systems*
+
+## Network Observability — rano
+
+**Source:** [github.com/Dicklesworthstone/rano](https://github.com/Dicklesworthstone/rano) (MIT)
+**Author:** Jeff Emanuel (@doodlestein)
+
+Rust-based network observer for AI agent processes. Polls `/proc`, maps sockets → PIDs → provider attribution (Anthropic/OpenAI/Google/unknown), logs to SQLite.
+
+### Relevant Features for Shoal
+- **Session diffing** — behavioral drift detection between monitoring windows
+- **Alert thresholds** — domain globs, connection limits, unknown domain detection
+- **JSON output** — structured event stream for ingestion
+- **SQLite views** — `provider_counts`, session reports, time-range queries
+- **Provider-aware** — automatic tagging of API traffic by vendor
+
+### Integration Points
+- Data source for Shoal's policy evaluation engine (network-layer audit trail)
+- Policy violation evidence (agent called unauthorized endpoint)
+- Cost attribution per agent/session
+- Anomaly/drift detection via session diffs against baselines
+- Compliance reporting (`rano report --json`)
+
+### Gaps (Shoal fills)
+- No payload inspection (sees destinations, not content)
+- Observes but doesn't block (Shoal = enforcement)
+- Single-machine (Shoal aggregates across tenants)
+- Linux-only (`/proc` dependency)
+
+### Status
+Evaluating as component dependency. MIT license — clean for commercial use.
