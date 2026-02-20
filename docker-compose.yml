@@ -3,6 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: shoal
       POSTGRES_USER: shoal
@@ -21,6 +22,7 @@ services:
     build:
       context: .
       dockerfile: packages/api/Dockerfile
+    restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://shoal:shoal_dev_2026@postgres:5432/shoal
       NODE_ENV: development
@@ -35,6 +37,7 @@ services:
     build:
       context: .
       dockerfile: packages/dashboard/Dockerfile
+    restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
       NODE_ENV: development

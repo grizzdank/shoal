@@ -18,26 +18,37 @@ export type ApprovalPolicyResult = {
 
 const DEFAULT_PII_PATTERNS: Array<{ name: string; regex: RegExp }> = [
   { name: 'email', regex: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i },
-  { name: 'phone', regex: /\b(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/ },
+  {
+    name: 'phone',
+    regex: /\b(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/,
+  },
   { name: 'ssn', regex: /\b\d{3}-\d{2}-\d{4}\b/ },
 ];
 
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  return value.filter(
+    (item): item is string =>
+      typeof item === 'string' && item.trim().length > 0,
+  );
 }
 
 function asBoolean(value: unknown, fallback = false): boolean {
   return typeof value === 'boolean' ? value : fallback;
 }
 
-export function evaluateContentPolicies(text: string, rulesList: JsonRecord[]): ContentPolicyResult {
+export function evaluateContentPolicies(
+  text: string,
+  rulesList: JsonRecord[],
+): ContentPolicyResult {
   const reasons: string[] = [];
   const matchedTerms = new Set<string>();
   const normalized = text.toLowerCase();
 
   for (const rules of rulesList) {
-    const blockedTerms = asStringArray(rules.blockedTerms).map((term) => term.toLowerCase());
+    const blockedTerms = asStringArray(rules.blockedTerms).map((term) =>
+      term.toLowerCase(),
+    );
     const piiPatterns = asStringArray(rules.piiPatterns);
     const blockOnPii = asBoolean(rules.blockOnPii, true);
 
@@ -60,7 +71,10 @@ export function evaluateContentPolicies(text: string, rulesList: JsonRecord[]): 
         .filter((value): value is RegExp => value !== null);
       const patterns =
         configuredPatterns.length > 0
-          ? configuredPatterns.map((regex) => ({ name: `custom:${regex.source}`, regex }))
+          ? configuredPatterns.map((regex) => ({
+              name: `custom:${regex.source}`,
+              regex,
+            }))
           : DEFAULT_PII_PATTERNS;
       for (const pattern of patterns) {
         if (pattern.regex.test(text)) {
@@ -122,11 +136,14 @@ export function evaluateApprovalPolicies(
     const requiredRoles = asStringArray(rules.rolesRequiringApproval);
 
     const actionMatched =
-      requiredActionTypes.length === 0 || requiredActionTypes.includes(actionType);
+      requiredActionTypes.length === 0 ||
+      requiredActionTypes.includes(actionType);
     const toolMatched =
-      requiredTools.length === 0 || (toolName !== null && requiredTools.includes(toolName));
+      requiredTools.length === 0 ||
+      (toolName !== null && requiredTools.includes(toolName));
     const roleMatched =
-      requiredRoles.length === 0 || (role !== null && requiredRoles.includes(role));
+      requiredRoles.length === 0 ||
+      (role !== null && requiredRoles.includes(role));
 
     if (actionMatched && toolMatched && roleMatched) {
       reasons.push(

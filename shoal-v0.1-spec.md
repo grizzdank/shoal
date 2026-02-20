@@ -1,4 +1,5 @@
 # Shoal v0.1 — MVP Specification
+
 **Version:** 0.1.1 | **Date:** 2026-02-13 | **License:** O'Saasy
 
 ---
@@ -64,54 +65,54 @@ Users on Slack/Discord/Signal/Teams/WhatsApp/etc.
 
 ### Build
 
-| Feature | Details |
-|---------|---------|
-| **Admin Dashboard** | Next.js web UI for managing the org's Shoal instance |
-| **User Management** | Invite users, assign roles (admin/member/viewer), manage permissions |
-| **Agent Management** | Create/configure/deploy agents, assign to channels, set tool permissions |
-| **Governance Policies** | Content filters (PII, toxicity, blocklists), tool restrictions per agent/role |
-| **Approval Gates** | High-impact agent actions require human ✅ before executing |
-| **Audit Trail** | Append-only log of all agent actions, tool calls, costs, reasoning |
-| **Search** | Hybrid vector + regex search across audit logs and documents (Profundo-style) |
-| **File Management** | Upload org documents for agent context (PDF, MD, TXT) |
-| **OpenClaw Integration** | Shoal wraps OpenClaw — intercepts agent I/O for governance + logging |
-| **Deployment** | Single `docker compose up`. OpenClaw + Shoal + Postgres + Redis. |
+| Feature                  | Details                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| **Admin Dashboard**      | Next.js web UI for managing the org's Shoal instance                          |
+| **User Management**      | Invite users, assign roles (admin/member/viewer), manage permissions          |
+| **Agent Management**     | Create/configure/deploy agents, assign to channels, set tool permissions      |
+| **Governance Policies**  | Content filters (PII, toxicity, blocklists), tool restrictions per agent/role |
+| **Approval Gates**       | High-impact agent actions require human ✅ before executing                   |
+| **Audit Trail**          | Append-only log of all agent actions, tool calls, costs, reasoning            |
+| **Search**               | Hybrid vector + regex search across audit logs and documents (Profundo-style) |
+| **File Management**      | Upload org documents for agent context (PDF, MD, TXT)                         |
+| **OpenClaw Integration** | Shoal wraps OpenClaw — intercepts agent I/O for governance + logging          |
+| **Deployment**           | Single `docker compose up`. OpenClaw + Shoal + Postgres + Redis.              |
 
 ### Don't Build
 
-| Killed | Why |
-|--------|-----|
-| Chat UI | Users stay in Slack/Discord/Signal/etc. OpenClaw handles channels. |
-| Socket.io messaging | No chat = no real-time messaging layer needed |
-| Channels/DMs/threads | OpenClaw + existing platforms handle this |
-| Schema-per-tenant / RLS | Single-tenant. One DB per instance. No isolation complexity. |
-| Keycloak / Vault | Auth.js + env vars. 2-person team. |
-| K8s / Terraform / Istio | Docker Compose. Period. |
-| ELK / Prometheus / Grafana | Structured logging to stdout. |
-| Fairlearn / AIF360 | Meaningless for API-based LLMs. |
-| LangChain | OpenClaw handles AI orchestration. |
-| Rich text editor | Admin dashboard only — standard form inputs. |
-| Mobile app | Responsive web dashboard. Users are on mobile via their channels already. |
-| Agent-to-agent delegation | v0.2. Get single-agent governance right first. |
-| Knowledge Base / RAG | v0.2. File uploads provide raw context for now. |
-| Rate limiting | Check if OpenClaw handles this already. Add later if needed. |
+| Killed                     | Why                                                                       |
+| -------------------------- | ------------------------------------------------------------------------- |
+| Chat UI                    | Users stay in Slack/Discord/Signal/etc. OpenClaw handles channels.        |
+| Socket.io messaging        | No chat = no real-time messaging layer needed                             |
+| Channels/DMs/threads       | OpenClaw + existing platforms handle this                                 |
+| Schema-per-tenant / RLS    | Single-tenant. One DB per instance. No isolation complexity.              |
+| Keycloak / Vault           | Auth.js + env vars. 2-person team.                                        |
+| K8s / Terraform / Istio    | Docker Compose. Period.                                                   |
+| ELK / Prometheus / Grafana | Structured logging to stdout.                                             |
+| Fairlearn / AIF360         | Meaningless for API-based LLMs.                                           |
+| LangChain                  | OpenClaw handles AI orchestration.                                        |
+| Rich text editor           | Admin dashboard only — standard form inputs.                              |
+| Mobile app                 | Responsive web dashboard. Users are on mobile via their channels already. |
+| Agent-to-agent delegation  | v0.2. Get single-agent governance right first.                            |
+| Knowledge Base / RAG       | v0.2. File uploads provide raw context for now.                           |
+| Rate limiting              | Check if OpenClaw handles this already. Add later if needed.              |
 
 ---
 
 ## Tech Stack
 
-| Layer | Choice | Why |
-|-------|--------|-----|
-| Monorepo | pnpm workspaces | Shared types between API + dashboard. Turborepo is overkill for 2 people. |
-| Backend API | NestJS | Modular, well-structured, good for governance logic |
-| API Layer | tRPC | End-to-end type safety |
-| ORM | Drizzle | Lightweight, TS-first, great migrations |
-| DB | PostgreSQL | Single-tenant, no RLS needed |
-| Cache | Redis | Sessions, queues |
-| Dashboard | Next.js (App Router) | SSR admin pages, React components |
-| Styling | Tailwind + shadcn/ui | Fast, consistent, accessible |
-| AI Runtime | OpenClaw (pinned) | The engine. We wrap it, not replace it. |
-| Auth | Auth.js | OAuth + email for admin dashboard access |
+| Layer       | Choice               | Why                                                                       |
+| ----------- | -------------------- | ------------------------------------------------------------------------- |
+| Monorepo    | pnpm workspaces      | Shared types between API + dashboard. Turborepo is overkill for 2 people. |
+| Backend API | NestJS               | Modular, well-structured, good for governance logic                       |
+| API Layer   | tRPC                 | End-to-end type safety                                                    |
+| ORM         | Drizzle              | Lightweight, TS-first, great migrations                                   |
+| DB          | PostgreSQL           | Single-tenant, no RLS needed                                              |
+| Cache       | Redis                | Sessions, queues                                                          |
+| Dashboard   | Next.js (App Router) | SSR admin pages, React components                                         |
+| Styling     | Tailwind + shadcn/ui | Fast, consistent, accessible                                              |
+| AI Runtime  | OpenClaw (pinned)    | The engine. We wrap it, not replace it.                                   |
+| Auth        | Auth.js              | OAuth + email for admin dashboard access                                  |
 
 ---
 
@@ -119,26 +120,26 @@ Users on Slack/Discord/Signal/Teams/WhatsApp/etc.
 
 Built with Ed & Graeme (framework authors at Assessed Intelligence).
 
-| Control | What We Actually Build |
-|---------|----------------------|
-| **P.IM (Identity)** | Auth.js with MFA for admin dashboard. Every action tied to authenticated user. |
-| **P.AC (Access Control)** | Role-based permissions. Agent tool restrictions per policy. |
-| **V.IA (Audit)** | Append-only log of all agent actions, tool calls, reasoning, cost. |
-| **G.AC (Accountability)** | Approval gates for high-impact agent actions. Human-in-the-loop. |
+| Control                       | What We Actually Build                                                             |
+| ----------------------------- | ---------------------------------------------------------------------------------- |
+| **P.IM (Identity)**           | Auth.js with MFA for admin dashboard. Every action tied to authenticated user.     |
+| **P.AC (Access Control)**     | Role-based permissions. Agent tool restrictions per policy.                        |
+| **V.IA (Audit)**              | Append-only log of all agent actions, tool calls, reasoning, cost.                 |
+| **G.AC (Accountability)**     | Approval gates for high-impact agent actions. Human-in-the-loop.                   |
 | **D.CM (Content Monitoring)** | Input/output filters on agent I/O: PII detection, toxicity, configurable policies. |
 
 ---
 
 ## Data Model
 
-| Entity | Key Fields |
-|--------|-----------|
-| **User** | `id`, `email`, `name`, `role` (admin/member/viewer), `auth_provider` |
-| **Agent** | `id`, `name`, `system_prompt`, `model`, `channels`, `tool_permissions`, `status` |
-| **Policy** | `id`, `type` (content_filter/tool_restriction/approval_required), `rules_json`, `enabled` |
-| **AuditEntry** | `id`, `actor_id`, `actor_type` (user/agent), `action`, `detail`, `cost_tokens`, `created_at` |
+| Entity              | Key Fields                                                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **User**            | `id`, `email`, `name`, `role` (admin/member/viewer), `auth_provider`                                                 |
+| **Agent**           | `id`, `name`, `system_prompt`, `model`, `channels`, `tool_permissions`, `status`                                     |
+| **Policy**          | `id`, `type` (content_filter/tool_restriction/approval_required), `rules_json`, `enabled`                            |
+| **AuditEntry**      | `id`, `actor_id`, `actor_type` (user/agent), `action`, `detail`, `cost_tokens`, `created_at`                         |
 | **ApprovalRequest** | `id`, `agent_id`, `action_type`, `params`, `state` (pending/approved/rejected/expired), `requested_at`, `decided_by` |
-| **Document** | `id`, `filename`, `mime_type`, `size`, `uploaded_by`, `storage_path`, `created_at` |
+| **Document**        | `id`, `filename`, `mime_type`, `size`, `uploaded_by`, `storage_path`, `created_at`                                   |
 
 No `tenant_id` anywhere. Single-tenant. Clean and simple.
 
@@ -150,17 +151,18 @@ Shoal registers as an **OpenClaw plugin** using the native Plugin SDK. No fork, 
 
 ### Plugin Hooks (confirmed via source code research)
 
-| Hook | Shoal Uses It For |
-|------|------------------|
-| `message_received` | Inbound content filters — PII detection, toxicity, blocklists |
-| `message_sending` | Outbound content filters — can mutate or cancel agent responses |
-| `before_tool_call` | Permission checks + approval gates (block execution until human ✅) |
-| `after_tool_call` / `tool_result_persist` | Audit logging, cost tracking, result redaction |
-| `before_agent_start` | Inject governance context into agent system prompt |
+| Hook                                      | Shoal Uses It For                                                   |
+| ----------------------------------------- | ------------------------------------------------------------------- |
+| `message_received`                        | Inbound content filters — PII detection, toxicity, blocklists       |
+| `message_sending`                         | Outbound content filters — can mutate or cancel agent responses     |
+| `before_tool_call`                        | Permission checks + approval gates (block execution until human ✅) |
+| `after_tool_call` / `tool_result_persist` | Audit logging, cost tracking, result redaction                      |
+| `before_agent_start`                      | Inject governance context into agent system prompt                  |
 
 ### Agent Configuration
 
 OpenClaw config is file-based (JSON/YAML) but programmable via:
+
 - `openclaw config` CLI for read/write
 - Gateway RPC/WebSocket for runtime management
 
@@ -205,10 +207,10 @@ services:
       DATABASE_URL: postgres://...
       REDIS_URL: redis://...
       OPENCLAW_URL: http://openclaw:3000
-    ports: ["3001:3001"]  # Admin dashboard
+    ports: ['3001:3001'] # Admin dashboard
   openclaw:
     image: ghcr.io/openclaw/openclaw:latest
-    ports: ["3000:3000"]  # OpenClaw webchat + API
+    ports: ['3000:3000'] # OpenClaw webchat + API
   postgres:
     image: postgres:17
   redis:
@@ -243,17 +245,17 @@ services:
 
 ## Decisions Log
 
-| Decision | Rationale |
-|----------|-----------|
-| Single-tenant, not multi-tenant | One org per instance. Consulting GTM = separate instance per client. Eliminates RLS complexity entirely. |
-| No chat UI | OpenClaw handles channels. Users stay in Slack/Discord/Signal. Shoal is governance + admin. |
-| Auth.js, not Keycloak | 2-person team can't ops Keycloak |
-| Modular monolith, not microservices | Split when you earn it |
-| 5 ARISE controls, not 128 | Framework authors are partners — they help prioritize |
-| Direct OpenClaw integration, not LangChain | OpenClaw IS the AI layer. No abstraction on top of abstraction. |
-| O'Saasy license | CYA not growth strategy. Clean IP. |
-| Dogfood first, sell second | 37signals playbook. |
+| Decision                                   | Rationale                                                                                                |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Single-tenant, not multi-tenant            | One org per instance. Consulting GTM = separate instance per client. Eliminates RLS complexity entirely. |
+| No chat UI                                 | OpenClaw handles channels. Users stay in Slack/Discord/Signal. Shoal is governance + admin.              |
+| Auth.js, not Keycloak                      | 2-person team can't ops Keycloak                                                                         |
+| Modular monolith, not microservices        | Split when you earn it                                                                                   |
+| 5 ARISE controls, not 128                  | Framework authors are partners — they help prioritize                                                    |
+| Direct OpenClaw integration, not LangChain | OpenClaw IS the AI layer. No abstraction on top of abstraction.                                          |
+| O'Saasy license                            | CYA not growth strategy. Clean IP.                                                                       |
+| Dogfood first, sell second                 | 37signals playbook.                                                                                      |
 
 ---
 
-*"Four arms on the keyboard, four arms on the product."* 🐙
+_"Four arms on the keyboard, four arms on the product."_ 🐙

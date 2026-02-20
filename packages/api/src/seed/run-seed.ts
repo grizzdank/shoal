@@ -39,8 +39,8 @@ function stableStringify(value: unknown): string {
   }
 
   if (value && typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
-      a.localeCompare(b),
+    const entries = Object.entries(value as Record<string, unknown>).sort(
+      ([a], [b]) => a.localeCompare(b),
     );
     return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`).join(',')}}`;
   }
@@ -50,7 +50,10 @@ function stableStringify(value: unknown): string {
 
 export async function runSeed(seedFilePath?: string) {
   const currentDir = dirname(fileURLToPath(import.meta.url));
-  const defaultSeedPath = resolve(currentDir, '../../../../seed/lfg-policies.json');
+  const defaultSeedPath = resolve(
+    currentDir,
+    '../../../../seed/lfg-policies.json',
+  );
   const raw = await readFile(seedFilePath ?? defaultSeedPath, 'utf8');
   const seedData = JSON.parse(raw) as SeedData;
 

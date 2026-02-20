@@ -9,9 +9,9 @@ https://www.technometria.com/p/beyond-denial-using-policy-constraints
 
 ## Executive Brief
 
-Shoal's current policy engine (`packages/api/src/policies/engine.ts`) is a reactive, TypeScript-native evaluator — it works correctly for v0.1 but operates only as a gate: the agent acts, Shoal checks, Shoal blocks. Windley's Cedar integration demonstrates a qualitatively different model: **constraint-aware planning**, where agents query what's *allowed* before proposing actions rather than discovering limits by hitting them.
+Shoal's current policy engine (`packages/api/src/policies/engine.ts`) is a reactive, TypeScript-native evaluator — it works correctly for v0.1 but operates only as a gate: the agent acts, Shoal checks, Shoal blocks. Windley's Cedar integration demonstrates a qualitatively different model: **constraint-aware planning**, where agents query what's _allowed_ before proposing actions rather than discovering limits by hitting them.
 
-For v0.1, Shoal's engine is the right call — simple, testable, no external dependencies. For v0.2+, Cedar adoption would unlock the architectural story that matters most for enterprise buyers: *"Your agents plan within policy boundaries — not just get corrected after the fact."*
+For v0.1, Shoal's engine is the right call — simple, testable, no external dependencies. For v0.2+, Cedar adoption would unlock the architectural story that matters most for enterprise buyers: _"Your agents plan within policy boundaries — not just get corrected after the fact."_
 
 ---
 
@@ -38,8 +38,9 @@ evaluateApprovalPolicies(actionType, toolName, role, rulesList)
 ### Governance Service (`governance/service.ts`)
 
 Orchestrates the three evaluators in sequence per tool call:
+
 1. Check tool policies → block or continue
-2. Check approval policies → block + create `approval_requests` row or continue  
+2. Check approval policies → block + create `approval_requests` row or continue
 3. Log to `audit_entries` either way
 
 ### Schema
@@ -59,6 +60,7 @@ Orchestrates the three evaluators in sequence per tool call:
 ### What Cedar Is
 
 Cedar is an open-source, AWS-developed policy language and evaluation engine. Policies are declarative, type-safe, and external to application code. Key properties:
+
 - **Deterministic** — same inputs always produce the same decision
 - **Auditable** — policy text is readable, versionable, diffable
 - **Attribute-based** — decisions based on principal, action, resource, and context attributes
@@ -72,7 +74,7 @@ Before proposing an action, the agent queries Cedar via **Typed Partial Evaluati
 
 > "Given this principal and this action type, what constraints apply?"
 
-Cedar evaluates the policy with some inputs fixed (principal, action) and others symbolic (resource, attributes), returning a *residual constraint* — a description of the allowable space. This constraint is injected into the agent's system prompt, so the agent reasons within policy-defined bounds before committing to a plan.
+Cedar evaluates the policy with some inputs fixed (principal, action) and others symbolic (resource, attributes), returning a _residual constraint_ — a description of the allowable space. This constraint is injected into the agent's system prompt, so the agent reasons within policy-defined bounds before committing to a plan.
 
 **Phase 2: Runtime enforcement (unchanged)**
 
@@ -87,18 +89,18 @@ Execution phase: agent → proposes action → PEP → Cedar → permit/deny →
 
 ## Gap Analysis
 
-| Dimension | Shoal Today | Cedar (Windley model) |
-|---|---|---|
-| **Policy language** | JSON blobs in DB (`rulesJson`) | Cedar DSL — declarative, typed, version-controlled |
-| **Evaluation mode** | Reactive only (check at call time) | Reactive + proactive (TPE before planning) |
-| **Agent planner awareness** | None — agent doesn't know constraints | Agent gets constraint expression before planning |
-| **Role model** | Flat strings (admin/member/viewer) | ABAC — principal + resource + context attributes |
-| **Policy authoring** | Raw JSON, developer-authored | Cedar syntax, policy-admin-readable |
-| **Determinism** | Yes — pure TS functions | Yes — Cedar evaluation is formally verified |
-| **Auditability** | Audit log entries | Full policy evaluation trace + policy text |
-| **External policy store** | PostgreSQL (`policies` table) | Cedar policy files (git-versionable) |
-| **Inter-policy expressiveness** | None — each rule is isolated | Cedar supports forbid > permit precedence, conditions |
-| **Dependency** | None (self-contained) | Cedar Rust/WASM library |
+| Dimension                       | Shoal Today                           | Cedar (Windley model)                                 |
+| ------------------------------- | ------------------------------------- | ----------------------------------------------------- |
+| **Policy language**             | JSON blobs in DB (`rulesJson`)        | Cedar DSL — declarative, typed, version-controlled    |
+| **Evaluation mode**             | Reactive only (check at call time)    | Reactive + proactive (TPE before planning)            |
+| **Agent planner awareness**     | None — agent doesn't know constraints | Agent gets constraint expression before planning      |
+| **Role model**                  | Flat strings (admin/member/viewer)    | ABAC — principal + resource + context attributes      |
+| **Policy authoring**            | Raw JSON, developer-authored          | Cedar syntax, policy-admin-readable                   |
+| **Determinism**                 | Yes — pure TS functions               | Yes — Cedar evaluation is formally verified           |
+| **Auditability**                | Audit log entries                     | Full policy evaluation trace + policy text            |
+| **External policy store**       | PostgreSQL (`policies` table)         | Cedar policy files (git-versionable)                  |
+| **Inter-policy expressiveness** | None — each rule is isolated          | Cedar supports forbid > permit precedence, conditions |
+| **Dependency**                  | None (self-contained)                 | Cedar Rust/WASM library                               |
 
 ---
 
@@ -107,6 +109,7 @@ Execution phase: agent → proposes action → PEP → Cedar → permit/deny →
 ### 1. No Planner Visibility (Most Important)
 
 The agent gets no signal about constraints during planning. It operates in an unconstrained space and discovers policy boundaries reactively. This creates:
+
 - **Wasted cycles** — agent proposes → denied → replans → proposes again
 - **Weaker compliance story** — "we deny bad actions" vs "agents operate within defined boundaries"
 
@@ -117,6 +120,7 @@ Cedar TPE solves this. Shoal's `evaluateToolPolicies` could theoretically expose
 Current: `role: string | null` checked against `rolesAllowed: string[]`
 
 This can't express:
+
 - "members can use `web_search` but only for external domains"
 - "admins can approve actions, but not their own agent's actions"
 - "agents with `trusted` attribute can skip content filtering"
@@ -145,12 +149,13 @@ Add Cedar as a pluggable policy backend behind a feature flag:
 
 ```typescript
 // governance/service.ts
-const policyBackend = config.cedar.enabled 
+const policyBackend = config.cedar.enabled
   ? new CedarPolicyBackend(config.cedar.policyPath)
   : new NativePolicyEngine();
 ```
 
 Introduce a `CedarPolicyBackend` that:
+
 1. Loads `.cedar` policy files from disk (git-tracked, not DB)
 2. Evaluates using `@cedar-policy/cedar-wasm` (WASM build, no native deps)
 3. Exposes a `/query-constraints` endpoint for TPE queries
@@ -160,6 +165,7 @@ Existing `policies` table and `engine.ts` remain as fallback.
 ### v0.3: TPE + Constraint-Aware Planning
 
 Implement Windley's planning phase:
+
 - OpenClaw plugin queries `/query-constraints` before generating plans
 - Constraint expression injected into agent system prompt
 - Runtime enforcement unchanged
@@ -170,19 +176,20 @@ This is the story that differentiates Shoal for enterprise: **agents that unders
 
 ## Integration Points with Current Code
 
-| Shoal Component | Cedar Integration Point |
-|---|---|
-| `engine.ts` | Replace/wrap with `CedarPolicyBackend.evaluate()` |
-| `governance/service.ts` | Add TPE query call before `evaluateToolCall()` |
-| `policies` DB table | Add `cedar_policy_path` column; Cedar policies in git |
-| OpenClaw plugin | Add pre-planning hook: call `/query-constraints` |
-| Admin dashboard | Policy editor showing Cedar syntax (v0.3) |
+| Shoal Component         | Cedar Integration Point                               |
+| ----------------------- | ----------------------------------------------------- |
+| `engine.ts`             | Replace/wrap with `CedarPolicyBackend.evaluate()`     |
+| `governance/service.ts` | Add TPE query call before `evaluateToolCall()`        |
+| `policies` DB table     | Add `cedar_policy_path` column; Cedar policies in git |
+| OpenClaw plugin         | Add pre-planning hook: call `/query-constraints`      |
+| Admin dashboard         | Policy editor showing Cedar syntax (v0.3)             |
 
 ---
 
 ## ARISE Alignment Note
 
 Cedar's deterministic, externally-auditable evaluation model strengthens ARISE control compliance:
+
 - **Control documentation**: Cedar policy text IS the policy documentation
 - **Auditability**: Every evaluation is traceable to a specific policy rule
 - **Separation of duty**: Policy authorship (Cedar files) separate from enforcement (runtime)

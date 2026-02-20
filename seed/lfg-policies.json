@@ -4,12 +4,7 @@
       "type": "content_filter",
       "enabled": true,
       "rulesJson": {
-        "blockedTerms": [
-          "client_secret",
-          "api_key",
-          "password",
-          "private_key"
-        ],
+        "blockedTerms": ["client_secret", "api_key", "password", "private_key"],
         "blockOnPii": true,
         "piiPatterns": []
       },
@@ -19,10 +14,7 @@
       "type": "tool_restriction",
       "enabled": true,
       "rulesJson": {
-        "denyTools": [
-          "exec_rm_rf",
-          "git_force_push"
-        ],
+        "denyTools": ["exec_rm_rf", "git_force_push"],
         "allowTools": [],
         "rolesAllowed": []
       },
@@ -50,10 +42,7 @@
       "enabled": true,
       "rulesJson": {
         "actionTypes": ["tool_call"],
-        "toolNames": [
-          "gateway",
-          "exec"
-        ],
+        "toolNames": ["gateway", "exec"],
         "rolesRequiringApproval": ["member"]
       },
       "description": "Member role needs approval for gateway changes and shell execution"
@@ -69,9 +58,7 @@
           "credit card"
         ],
         "blockOnPii": true,
-        "piiPatterns": [
-          "\\b\\d{4}[- ]?\\d{4}[- ]?\\d{4}[- ]?\\d{4}\\b"
-        ]
+        "piiPatterns": ["\\b\\d{4}[- ]?\\d{4}[- ]?\\d{4}[- ]?\\d{4}\\b"]
       },
       "description": "Financial data protection - block credit card numbers and financial PII"
     }

@@ -5,7 +5,11 @@ import { Sidebar } from '../components/sidebar';
 import { AuthSessionProvider } from '../components/session-provider';
 import { auth } from '../auth';
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const session = await auth();
 
   if (!session) {

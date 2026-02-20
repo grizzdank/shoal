@@ -1,8 +1,20 @@
-import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
-const now = timestamp('created_at', { withTimezone: true }).notNull().default(sql`now()`);
-const updatedNow = timestamp('updated_at', { withTimezone: true }).notNull().default(sql`now()`);
+const now = timestamp('created_at', { withTimezone: true })
+  .notNull()
+  .default(sql`now()`);
+const updatedNow = timestamp('updated_at', { withTimezone: true })
+  .notNull()
+  .default(sql`now()`);
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -19,8 +31,12 @@ export const agents = pgTable('agents', {
   name: text('name').notNull(),
   systemPrompt: text('system_prompt').notNull(),
   model: text('model').notNull(),
-  channels: jsonb('channels').notNull().default(sql`'[]'::jsonb`),
-  toolPermissions: jsonb('tool_permissions').notNull().default(sql`'{}'::jsonb`),
+  channels: jsonb('channels')
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  toolPermissions: jsonb('tool_permissions')
+    .notNull()
+    .default(sql`'{}'::jsonb`),
   status: text('status').notNull(),
   createdAt: now,
   updatedAt: updatedNow,
@@ -49,9 +65,13 @@ export const approvalRequests = pgTable('approval_requests', {
   id: uuid('id').defaultRandom().primaryKey(),
   agentId: uuid('agent_id').notNull(),
   actionType: text('action_type').notNull(),
-  params: jsonb('params').notNull().default(sql`'{}'::jsonb`),
+  params: jsonb('params')
+    .notNull()
+    .default(sql`'{}'::jsonb`),
   state: text('state').notNull(),
-  requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().default(sql`now()`),
+  requestedAt: timestamp('requested_at', { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
   decidedBy: uuid('decided_by'),
 });
 

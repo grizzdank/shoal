@@ -17,9 +17,9 @@ export default function Page() {
   const [items, setItems] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [type, setType] = useState<'content_filter' | 'tool_restriction' | 'approval_required'>(
-    'content_filter',
-  );
+  const [type, setType] = useState<
+    'content_filter' | 'tool_restriction' | 'approval_required'
+  >('content_filter');
   const [enabled, setEnabled] = useState(true);
   const [rulesText, setRulesText] = useState('{\n  "blockedTerms": ["ssn"]\n}');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -94,8 +94,13 @@ export default function Page() {
   return (
     <section className="space-y-6">
       <h2 className="text-2xl font-semibold">Policies</h2>
-      <form className="space-y-3 rounded border border-slate-700 p-4" onSubmit={onCreate}>
-        <h3 className="text-lg font-medium">{editingId ? 'Edit Policy' : 'Create Policy'}</h3>
+      <form
+        className="space-y-3 rounded border border-slate-700 p-4"
+        onSubmit={onCreate}
+      >
+        <h3 className="text-lg font-medium">
+          {editingId ? 'Edit Policy' : 'Create Policy'}
+        </h3>
         <div className="grid gap-2 md:grid-cols-3">
           <label className="space-y-1">
             <span className="text-sm text-slate-300">Type</span>
@@ -110,7 +115,11 @@ export default function Page() {
             </select>
           </label>
           <label className="flex items-end gap-2">
-            <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={(e) => setEnabled(e.target.checked)}
+            />
             <span className="text-sm text-slate-300">Enabled</span>
           </label>
         </div>
@@ -137,13 +146,17 @@ export default function Page() {
       <div className="space-y-2">
         <h3 className="text-lg font-medium">Existing Policies</h3>
         {loading ? <p className="text-sm text-slate-400">Loading...</p> : null}
-        {!loading && items.length === 0 ? <p className="text-sm text-slate-400">No policies yet.</p> : null}
+        {!loading && items.length === 0 ? (
+          <p className="text-sm text-slate-400">No policies yet.</p>
+        ) : null}
         <ul className="space-y-2">
           {items.map((policy) => (
             <li key={policy.id} className="rounded border border-slate-800 p-3">
               <p className="text-sm">
                 <span className="font-semibold">{policy.type}</span>{' '}
-                <span className="text-slate-400">({policy.enabled ? 'enabled' : 'disabled'})</span>
+                <span className="text-slate-400">
+                  ({policy.enabled ? 'enabled' : 'disabled'})
+                </span>
               </p>
               <pre className="mt-2 overflow-x-auto rounded bg-slate-900 p-2 text-xs">
                 {JSON.stringify(policy.rulesJson, null, 2)}
@@ -152,7 +165,11 @@ export default function Page() {
                 <Button onClick={() => beginEdit(policy)} type="button">
                   Edit
                 </Button>
-                <Button className="bg-red-200" onClick={() => void removePolicy(policy.id)} type="button">
+                <Button
+                  className="bg-red-200"
+                  onClick={() => void removePolicy(policy.id)}
+                  type="button"
+                >
                   Delete
                 </Button>
               </div>

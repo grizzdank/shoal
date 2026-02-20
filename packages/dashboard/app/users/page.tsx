@@ -93,8 +93,13 @@ export default function Page() {
   return (
     <section className="space-y-6">
       <h2 className="text-2xl font-semibold">Users</h2>
-      <form className="space-y-3 rounded border border-slate-700 p-4" onSubmit={onSubmit}>
-        <h3 className="text-lg font-medium">{editingId ? 'Edit User' : 'Invite User'}</h3>
+      <form
+        className="space-y-3 rounded border border-slate-700 p-4"
+        onSubmit={onSubmit}
+      >
+        <h3 className="text-lg font-medium">
+          {editingId ? 'Edit User' : 'Invite User'}
+        </h3>
         <div className="grid gap-2 md:grid-cols-2">
           <label className="space-y-1">
             <span className="text-sm text-slate-300">Email</span>
@@ -138,7 +143,9 @@ export default function Page() {
           </label>
         </div>
         <div className="flex gap-2">
-          <Button type="submit">{editingId ? 'Save Changes' : 'Create User'}</Button>
+          <Button type="submit">
+            {editingId ? 'Save Changes' : 'Create User'}
+          </Button>
           {editingId ? (
             <Button className="bg-slate-300" type="button" onClick={resetForm}>
               Cancel
@@ -152,7 +159,9 @@ export default function Page() {
       <div className="space-y-2">
         <h3 className="text-lg font-medium">Existing Users</h3>
         {loading ? <p className="text-sm text-slate-400">Loading...</p> : null}
-        {!loading && items.length === 0 ? <p className="text-sm text-slate-400">No users yet.</p> : null}
+        {!loading && items.length === 0 ? (
+          <p className="text-sm text-slate-400">No users yet.</p>
+        ) : null}
         <ul className="space-y-2">
           {items.map((user) => (
             <li className="rounded border border-slate-800 p-3" key={user.id}>
@@ -165,7 +174,11 @@ export default function Page() {
                 <Button onClick={() => beginEdit(user)} type="button">
                   Edit
                 </Button>
-                <Button className="bg-red-200" onClick={() => void removeUser(user.id)} type="button">
+                <Button
+                  className="bg-red-200"
+                  onClick={() => void removeUser(user.id)}
+                  type="button"
+                >
                   Delete
                 </Button>
               </div>

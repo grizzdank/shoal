@@ -55,6 +55,7 @@ docker compose up --build
 ```
 
 This boots:
+
 - `dashboard` on `http://localhost:3000`
 - `api` on `http://localhost:3001`
 - `postgres` on `localhost:5432`
@@ -62,6 +63,7 @@ This boots:
 - `openclaw` on `http://localhost:8080`
 
 Compose now includes healthchecks and startup ordering:
+
 - `api` waits for Postgres + Redis health
 - `dashboard` waits for API health
 

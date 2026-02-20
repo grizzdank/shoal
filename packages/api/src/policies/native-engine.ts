@@ -20,10 +20,17 @@ function toJsonRecord(value: unknown): Record<string, unknown> {
 
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  return value.filter(
+    (item): item is string =>
+      typeof item === 'string' && item.trim().length > 0,
+  );
 }
 
-function appliesToRole(rules: JsonRecord, roleKey: string, role: string | null): boolean {
+function appliesToRole(
+  rules: JsonRecord,
+  roleKey: string,
+  role: string | null,
+): boolean {
   const roles = asStringArray(rules[roleKey]);
   if (roles.length === 0) return true;
   return role !== null && roles.includes(role);
@@ -40,9 +47,17 @@ export class NativePolicyEngine implements PolicyBackend {
     const toolPolicies = await this.db
       .select({ rulesJson: policies.rulesJson })
       .from(policies)
-      .where(and(eq(policies.enabled, true), eq(policies.type, 'tool_restriction')));
-    const toolRules = toolPolicies.map((policy) => policy.rulesJson as JsonRecord);
-    const toolResult = evaluateToolPolicies(input.toolName, input.principal.role, toolRules);
+      .where(
+        and(eq(policies.enabled, true), eq(policies.type, 'tool_restriction')),
+      );
+    const toolRules = toolPolicies.map(
+      (policy) => policy.rulesJson as JsonRecord,
+    );
+    const toolResult = evaluateToolPolicies(
+      input.toolName,
+      input.principal.role,
+      toolRules,
+    );
 
     if (!toolResult.allowed) {
       await logAuditEvent({
@@ -64,8 +79,12 @@ export class NativePolicyEngine implements PolicyBackend {
     const approvalPolicies = await this.db
       .select({ rulesJson: policies.rulesJson })
       .from(policies)
-      .where(and(eq(policies.enabled, true), eq(policies.type, 'approval_required')));
-    const approvalRules = approvalPolicies.map((policy) => policy.rulesJson as JsonRecord);
+      .where(
+        and(eq(policies.enabled, true), eq(policies.type, 'approval_required')),
+      );
+    const approvalRules = approvalPolicies.map(
+      (policy) => policy.rulesJson as JsonRecord,
+    );
     const approvalEval = evaluateApprovalPolicies(
       input.actionType,
       input.toolName,
@@ -120,16 +139,29 @@ export class NativePolicyEngine implements PolicyBackend {
     };
   }
 
-  async queryConstraints(principal: Principal, actionType: string): Promise<ConstraintExpression> {
+  async queryConstraints(
+    principal: Principal,
+    actionType: string,
+  ): Promise<ConstraintExpression> {
     const [toolPolicies, approvalPolicies] = await Promise.all([
       this.db
         .select({ rulesJson: policies.rulesJson })
         .from(policies)
-        .where(and(eq(policies.enabled, true), eq(policies.type, 'tool_restriction'))),
+        .where(
+          and(
+            eq(policies.enabled, true),
+            eq(policies.type, 'tool_restriction'),
+          ),
+        ),
       this.db
         .select({ rulesJson: policies.rulesJson })
         .from(policies)
-        .where(and(eq(policies.enabled, true), eq(policies.type, 'approval_required'))),
+        .where(
+          and(
+            eq(policies.enabled, true),
+            eq(policies.type, 'approval_required'),
+          ),
+        ),
     ]);
 
     const allowedTools = new Set<string>();
@@ -138,19 +170,23 @@ export class NativePolicyEngine implements PolicyBackend {
     for (const policy of toolPolicies) {
       const rules = policy.rulesJson as JsonRecord;
       if (!appliesToRole(rules, 'rolesAllowed', principal.role)) continue;
-      for (const tool of asStringArray(rules.allowTools)) allowedTools.add(tool);
-      for (const tool of asStringArray(rules.denyTools)) forbiddenTools.add(tool);
+      for (const tool of asStringArray(rules.allowTools))
+        allowedTools.add(tool);
+      for (const tool of asStringArray(rules.denyTools))
+        forbiddenTools.add(tool);
     }
 
     const requiresApproval = new Set<string>();
 
     for (const policy of approvalPolicies) {
       const rules = policy.rulesJson as JsonRecord;
-      if (!appliesToRole(rules, 'rolesRequiringApproval', principal.role)) continue;
+      if (!appliesToRole(rules, 'rolesRequiringApproval', principal.role))
+        continue;
 
       const actionTypes = asStringArray(rules.actionTypes);
       const toolNames = asStringArray(rules.toolNames);
-      const actionMatches = actionTypes.length === 0 || actionTypes.includes(actionType);
+      const actionMatches =
+        actionTypes.length === 0 || actionTypes.includes(actionType);
 
       if (!actionMatches) continue;
 
@@ -165,9 +201,12 @@ export class NativePolicyEngine implements PolicyBackend {
     const forbiddenToolsList = uniqueSorted(forbiddenTools);
     const requiresApprovalList = uniqueSorted(requiresApproval);
     const roleLabel = principal.role ?? 'anonymous';
-    const restrictedLabel = forbiddenToolsList.length > 0 ? forbiddenToolsList.join(', ') : 'none';
+    const restrictedLabel =
+      forbiddenToolsList.length > 0 ? forbiddenToolsList.join(', ') : 'none';
     const approvalLabel =
-      requiresApprovalList.length > 0 ? requiresApprovalList.join(', ') : 'none';
+      requiresApprovalList.length > 0
+        ? requiresApprovalList.join(', ')
+        : 'none';
 
     return {
       allowedTools: allowedToolsList,

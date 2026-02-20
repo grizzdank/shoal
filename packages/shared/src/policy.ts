@@ -27,5 +27,8 @@ export interface PolicyDecision {
 
 export interface PolicyBackend {
   evaluate(input: EvaluateInput): Promise<PolicyDecision>;
-  queryConstraints(principal: Principal, actionType: string): Promise<ConstraintExpression>;
+  queryConstraints(
+    principal: Principal,
+    actionType: string,
+  ): Promise<ConstraintExpression>;
 }

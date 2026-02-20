@@ -14,7 +14,11 @@ export function Sidebar() {
       <h1 className="mb-6 text-xl font-semibold">Shoal Admin</h1>
       <nav className="space-y-2">
         {nav.map(([label, href]) => (
-          <a className="block rounded px-3 py-2 hover:bg-slate-800" href={href} key={href}>
+          <a
+            className="block rounded px-3 py-2 hover:bg-slate-800"
+            href={href}
+            key={href}
+          >
             {label}
           </a>
         ))}

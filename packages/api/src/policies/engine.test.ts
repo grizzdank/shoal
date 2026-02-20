@@ -12,17 +12,25 @@ describe('evaluateContentPolicies', () => {
       { blockedTerms: ['ssn'] },
     ]);
     assert.equal(result.allowed, false);
-    assert.ok(result.reasons.some((reason) => reason.startsWith('blocked_term:ssn')));
+    assert.ok(
+      result.reasons.some((reason) => reason.startsWith('blocked_term:ssn')),
+    );
   });
 
   test('blocks pii patterns by default', () => {
-    const result = evaluateContentPolicies('Reach me at test@example.com', [{}]);
+    const result = evaluateContentPolicies('Reach me at test@example.com', [
+      {},
+    ]);
     assert.equal(result.allowed, false);
-    assert.ok(result.reasons.some((reason) => reason.startsWith('pii_detected:email')));
+    assert.ok(
+      result.reasons.some((reason) => reason.startsWith('pii_detected:email')),
+    );
   });
 
   test('allows safe text', () => {
-    const result = evaluateContentPolicies('hello world', [{ blockedTerms: ['forbidden'] }]);
+    const result = evaluateContentPolicies('hello world', [
+      { blockedTerms: ['forbidden'] },
+    ]);
     assert.equal(result.allowed, true);
     assert.equal(result.reasons.length, 0);
   });
@@ -56,13 +64,18 @@ describe('evaluateToolPolicies', () => {
 
 describe('evaluateApprovalPolicies', () => {
   test('requires approval when policy matches', () => {
-    const result = evaluateApprovalPolicies('tool_call', 'wire_transfer', 'member', [
-      {
-        actionTypes: ['tool_call'],
-        toolNames: ['wire_transfer'],
-        rolesRequiringApproval: ['member', 'viewer'],
-      },
-    ]);
+    const result = evaluateApprovalPolicies(
+      'tool_call',
+      'wire_transfer',
+      'member',
+      [
+        {
+          actionTypes: ['tool_call'],
+          toolNames: ['wire_transfer'],
+          rolesRequiringApproval: ['member', 'viewer'],
+        },
+      ],
+    );
     assert.equal(result.requiresApproval, true);
     assert.ok(result.reasons.length > 0);
   });

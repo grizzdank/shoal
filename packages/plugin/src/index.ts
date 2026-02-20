@@ -11,7 +11,8 @@ type OpenClawPlugin = {
   };
 };
 
-const governanceApiUrl = process.env.SHOAL_GOVERNANCE_API_URL ?? 'http://localhost:3001';
+const governanceApiUrl =
+  process.env.SHOAL_GOVERNANCE_API_URL ?? 'http://localhost:3001';
 
 function asString(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
@@ -22,7 +23,10 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
-async function callGovernance(path: string, payload: Record<string, unknown>): Promise<HookResponse> {
+async function callGovernance(
+  path: string,
+  payload: Record<string, unknown>,
+): Promise<HookResponse> {
   try {
     const response = await fetch(`${governanceApiUrl}${path}`, {
       method: 'POST',

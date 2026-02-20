@@ -27,7 +27,9 @@ export default function Page() {
   const [model, setModel] = useState('gpt-4.1-mini');
   const [status, setStatus] = useState('active');
   const [channelsText, setChannelsText] = useState('["signal","discord"]');
-  const [toolPermissionsText, setToolPermissionsText] = useState('{\n  "allowTools": ["search"]\n}');
+  const [toolPermissionsText, setToolPermissionsText] = useState(
+    '{\n  "allowTools": ["search"]\n}',
+  );
 
   async function loadAgents() {
     setLoading(true);
@@ -57,7 +59,10 @@ export default function Page() {
     setError(null);
     try {
       const channels = JSON.parse(channelsText) as string[];
-      const toolPermissions = JSON.parse(toolPermissionsText) as Record<string, unknown>;
+      const toolPermissions = JSON.parse(toolPermissionsText) as Record<
+        string,
+        unknown
+      >;
       if (!Array.isArray(channels)) {
         throw new Error('Channels JSON must be an array of strings');
       }
@@ -120,8 +125,13 @@ export default function Page() {
   return (
     <section className="space-y-6">
       <h2 className="text-2xl font-semibold">Agents</h2>
-      <form className="space-y-3 rounded border border-slate-700 p-4" onSubmit={onSubmit}>
-        <h3 className="text-lg font-medium">{editingId ? 'Edit Agent' : 'Create Agent'}</h3>
+      <form
+        className="space-y-3 rounded border border-slate-700 p-4"
+        onSubmit={onSubmit}
+      >
+        <h3 className="text-lg font-medium">
+          {editingId ? 'Edit Agent' : 'Create Agent'}
+        </h3>
         <div className="grid gap-2 md:grid-cols-2">
           <label className="space-y-1">
             <span className="text-sm text-slate-300">Name</span>
@@ -169,7 +179,9 @@ export default function Page() {
             />
           </label>
           <label className="space-y-1 md:col-span-2">
-            <span className="text-sm text-slate-300">Tool Permissions JSON</span>
+            <span className="text-sm text-slate-300">
+              Tool Permissions JSON
+            </span>
             <textarea
               className="h-32 w-full rounded bg-slate-900 p-2 font-mono text-sm"
               required
@@ -179,7 +191,9 @@ export default function Page() {
           </label>
         </div>
         <div className="flex gap-2">
-          <Button type="submit">{editingId ? 'Save Changes' : 'Create Agent'}</Button>
+          <Button type="submit">
+            {editingId ? 'Save Changes' : 'Create Agent'}
+          </Button>
           {editingId ? (
             <Button className="bg-slate-300" type="button" onClick={resetForm}>
               Cancel
@@ -193,7 +207,9 @@ export default function Page() {
       <div className="space-y-2">
         <h3 className="text-lg font-medium">Existing Agents</h3>
         {loading ? <p className="text-sm text-slate-400">Loading...</p> : null}
-        {!loading && items.length === 0 ? <p className="text-sm text-slate-400">No agents yet.</p> : null}
+        {!loading && items.length === 0 ? (
+          <p className="text-sm text-slate-400">No agents yet.</p>
+        ) : null}
         <ul className="space-y-2">
           {items.map((agent) => (
             <li className="rounded border border-slate-800 p-3" key={agent.id}>
@@ -201,10 +217,15 @@ export default function Page() {
               <p className="text-sm text-slate-300">
                 model: {agent.model} · status: {agent.status}
               </p>
-              <p className="mt-2 text-xs text-slate-500">{agent.systemPrompt}</p>
+              <p className="mt-2 text-xs text-slate-500">
+                {agent.systemPrompt}
+              </p>
               <pre className="mt-2 overflow-x-auto rounded bg-slate-900 p-2 text-xs">
                 {JSON.stringify(
-                  { channels: agent.channels, toolPermissions: agent.toolPermissions },
+                  {
+                    channels: agent.channels,
+                    toolPermissions: agent.toolPermissions,
+                  },
                   null,
                   2,
                 )}
@@ -213,7 +234,11 @@ export default function Page() {
                 <Button onClick={() => beginEdit(agent)} type="button">
                   Edit
                 </Button>
-                <Button className="bg-red-200" onClick={() => void removeAgent(agent.id)} type="button">
+                <Button
+                  className="bg-red-200"
+                  onClick={() => void removeAgent(agent.id)}
+                  type="button"
+                >
                   Delete
                 </Button>
               </div>

@@ -16,6 +16,30 @@ type AuditEntry = {
   createdAt: string;
 };
 
+function formatRelativeTime(value: string) {
+  const ts = new Date(value).getTime();
+  if (Number.isNaN(ts)) {
+    return 'just now';
+  }
+
+  const elapsed = Math.max(0, Date.now() - ts);
+  const minutes = Math.floor(elapsed / 60_000);
+  if (minutes < 1) {
+    return 'just now';
+  }
+  if (minutes < 60) {
+    return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? '' : 's'} ago`;
+}
+
 export default function Page() {
   const [items, setItems] = useState<AuditEntry[]>([]);
   const [query, setQuery] = useState('');
@@ -50,7 +74,12 @@ export default function Page() {
 
   return (
     <section className="space-y-6">
-      <h2 className="text-2xl font-semibold">Audit Log</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-2xl font-semibold">Audit Log</h2>
+        <Button type="button" onClick={() => void loadAudit(query)}>
+          Refresh
+        </Button>
+      </div>
       <form className="flex gap-2" onSubmit={onSearch}>
         <input
           className="w-full rounded bg-slate-900 p-2"
@@ -59,13 +88,12 @@ export default function Page() {
           onChange={(e) => setQuery(e.target.value)}
         />
         <Button type="submit">Search</Button>
-        <Button type="button" onClick={() => void loadAudit()}>
-          Refresh
-        </Button>
       </form>
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
       {loading ? <p className="text-sm text-slate-400">Loading...</p> : null}
-      {!loading && items.length === 0 ? <p className="text-sm text-slate-400">No audit entries found.</p> : null}
+      {!loading && items.length === 0 ? (
+        <p className="text-sm text-slate-400">No audit entries found.</p>
+      ) : null}
       <ul className="space-y-2">
         {items.map((entry) => (
           <li key={entry.id} className="rounded border border-slate-800 p-3">
@@ -74,10 +102,15 @@ export default function Page() {
               <span className="text-slate-400">
                 {entry.actorType}:{entry.actorId}
               </span>
-              <span className="text-slate-500">{new Date(entry.createdAt).toLocaleString()}</span>
+              <span className="text-slate-500">
+                {new Date(entry.createdAt).toLocaleString()} (
+                {formatRelativeTime(entry.createdAt)})
+              </span>
               <span className="text-slate-500">cost: {entry.costTokens}</span>
             </div>
-            <pre className="mt-2 overflow-x-auto rounded bg-slate-900 p-2 text-xs">{entry.detail}</pre>
+            <pre className="mt-2 overflow-x-auto rounded bg-slate-900 p-2 text-xs">
+              {entry.detail}
+            </pre>
           </li>
         ))}
       </ul>

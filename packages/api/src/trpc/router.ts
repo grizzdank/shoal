@@ -30,14 +30,20 @@ const t = initTRPC.context<TrpcContext>().create();
 const procedure = t.procedure;
 const authedProcedure = procedure.use(({ ctx, next }) => {
   if (!ctx.userId) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Authentication required' });
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Authentication required',
+    });
   }
   return next();
 });
 const roleProcedure = (allowedRoles: Array<'admin' | 'member' | 'viewer'>) =>
   authedProcedure.use(({ ctx, next }) => {
     if (!ctx.userRole || !allowedRoles.includes(ctx.userRole)) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Insufficient role permissions' });
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Insufficient role permissions',
+      });
     }
     return next();
   });
@@ -56,9 +62,21 @@ const paramsSchema = z.record(z.string(), z.unknown());
 const nonEmptyObject = <T extends z.ZodRawShape>(shape: T) =>
   z
     .object(shape)
-    .refine((value) => Object.keys(value).length > 0, 'At least one field must be provided');
+    .refine(
+      (value) => Object.keys(value).length > 0,
+      'At least one field must be provided',
+    );
 
-const countRows = async (table: typeof users | typeof agents | typeof policies | typeof auditEntries | typeof approvalRequests | typeof documents, whereClause?: ReturnType<typeof eq>) => {
+const countRows = async (
+  table:
+    | typeof users
+    | typeof agents
+    | typeof policies
+    | typeof auditEntries
+    | typeof approvalRequests
+    | typeof documents,
+  whereClause?: ReturnType<typeof eq>,
+) => {
   const query = db.select({ count: sql<number>`count(*)::int` }).from(table);
   const [result] = whereClause ? await query.where(whereClause) : await query;
   return result?.count ?? 0;
@@ -69,19 +87,36 @@ const ctxActor = (ctx: TrpcContext) => ({
 });
 
 const usersRouter = t.router({
-  list: authedProcedure.input(paginationInput.optional()).query(async ({ input }) => {
-    const limit = input?.limit ?? 20;
-    const offset = input?.offset ?? 0;
-    const whereClause = input?.query
-      ? or(ilike(users.email, `%${input.query}%`), ilike(users.name, `%${input.query}%`), ilike(users.role, `%${input.query}%`))
-      : undefined;
-    const itemsQuery = db.select().from(users).orderBy(desc(users.createdAt)).limit(limit).offset(offset);
-    const items = whereClause ? await itemsQuery.where(whereClause) : await itemsQuery;
-    const total = await countRows(users, whereClause);
-    return { items, total, limit, offset };
-  }),
+  list: authedProcedure
+    .input(paginationInput.optional())
+    .query(async ({ input }) => {
+      const limit = input?.limit ?? 20;
+      const offset = input?.offset ?? 0;
+      const whereClause = input?.query
+        ? or(
+            ilike(users.email, `%${input.query}%`),
+            ilike(users.name, `%${input.query}%`),
+            ilike(users.role, `%${input.query}%`),
+          )
+        : undefined;
+      const itemsQuery = db
+        .select()
+        .from(users)
+        .orderBy(desc(users.createdAt))
+        .limit(limit)
+        .offset(offset);
+      const items = whereClause
+        ? await itemsQuery.where(whereClause)
+        : await itemsQuery;
+      const total = await countRows(users, whereClause);
+      return { items, total, limit, offset };
+    }),
   get: authedProcedure.input(idInput).query(async ({ input }) => {
-    const [item] = await db.select().from(users).where(eq(users.id, input.id)).limit(1);
+    const [item] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, input.id))
+      .limit(1);
     return item ?? null;
   }),
   create: adminProcedure
@@ -118,25 +153,45 @@ const usersRouter = t.router({
       return updated ?? null;
     }),
   delete: adminProcedure.input(idInput).mutation(async ({ input }) => {
-    const [deleted] = await db.delete(users).where(eq(users.id, input.id)).returning({ id: users.id });
+    const [deleted] = await db
+      .delete(users)
+      .where(eq(users.id, input.id))
+      .returning({ id: users.id });
     return { id: deleted?.id ?? input.id, deleted: Boolean(deleted) };
   }),
 });
 
 const agentsRouter = t.router({
-  list: authedProcedure.input(paginationInput.optional()).query(async ({ input }) => {
-    const limit = input?.limit ?? 20;
-    const offset = input?.offset ?? 0;
-    const whereClause = input?.query
-      ? or(ilike(agents.name, `%${input.query}%`), ilike(agents.model, `%${input.query}%`), ilike(agents.status, `%${input.query}%`))
-      : undefined;
-    const itemsQuery = db.select().from(agents).orderBy(desc(agents.createdAt)).limit(limit).offset(offset);
-    const items = whereClause ? await itemsQuery.where(whereClause) : await itemsQuery;
-    const total = await countRows(agents, whereClause);
-    return { items, total, limit, offset };
-  }),
+  list: authedProcedure
+    .input(paginationInput.optional())
+    .query(async ({ input }) => {
+      const limit = input?.limit ?? 20;
+      const offset = input?.offset ?? 0;
+      const whereClause = input?.query
+        ? or(
+            ilike(agents.name, `%${input.query}%`),
+            ilike(agents.model, `%${input.query}%`),
+            ilike(agents.status, `%${input.query}%`),
+          )
+        : undefined;
+      const itemsQuery = db
+        .select()
+        .from(agents)
+        .orderBy(desc(agents.createdAt))
+        .limit(limit)
+        .offset(offset);
+      const items = whereClause
+        ? await itemsQuery.where(whereClause)
+        : await itemsQuery;
+      const total = await countRows(agents, whereClause);
+      return { items, total, limit, offset };
+    }),
   get: authedProcedure.input(idInput).query(async ({ input }) => {
-    const [item] = await db.select().from(agents).where(eq(agents.id, input.id)).limit(1);
+    const [item] = await db
+      .select()
+      .from(agents)
+      .where(eq(agents.id, input.id))
+      .limit(1);
     return item ?? null;
   }),
   create: memberProcedure
@@ -177,29 +232,51 @@ const agentsRouter = t.router({
       return updated ?? null;
     }),
   delete: memberProcedure.input(idInput).mutation(async ({ input }) => {
-    const [deleted] = await db.delete(agents).where(eq(agents.id, input.id)).returning({ id: agents.id });
+    const [deleted] = await db
+      .delete(agents)
+      .where(eq(agents.id, input.id))
+      .returning({ id: agents.id });
     return { id: deleted?.id ?? input.id, deleted: Boolean(deleted) };
   }),
 });
 
 const policiesRouter = t.router({
-  list: authedProcedure.input(paginationInput.optional()).query(async ({ input }) => {
-    const limit = input?.limit ?? 20;
-    const offset = input?.offset ?? 0;
-    const whereClause = input?.query ? ilike(policies.type, `%${input.query}%`) : undefined;
-    const itemsQuery = db.select().from(policies).orderBy(desc(policies.createdAt)).limit(limit).offset(offset);
-    const items = whereClause ? await itemsQuery.where(whereClause) : await itemsQuery;
-    const total = await countRows(policies, whereClause);
-    return { items, total, limit, offset };
-  }),
+  list: authedProcedure
+    .input(paginationInput.optional())
+    .query(async ({ input }) => {
+      const limit = input?.limit ?? 20;
+      const offset = input?.offset ?? 0;
+      const whereClause = input?.query
+        ? ilike(policies.type, `%${input.query}%`)
+        : undefined;
+      const itemsQuery = db
+        .select()
+        .from(policies)
+        .orderBy(desc(policies.createdAt))
+        .limit(limit)
+        .offset(offset);
+      const items = whereClause
+        ? await itemsQuery.where(whereClause)
+        : await itemsQuery;
+      const total = await countRows(policies, whereClause);
+      return { items, total, limit, offset };
+    }),
   get: authedProcedure.input(idInput).query(async ({ input }) => {
-    const [item] = await db.select().from(policies).where(eq(policies.id, input.id)).limit(1);
+    const [item] = await db
+      .select()
+      .from(policies)
+      .where(eq(policies.id, input.id))
+      .limit(1);
     return item ?? null;
   }),
   create: memberProcedure
     .input(
       z.object({
-        type: z.enum(['content_filter', 'tool_restriction', 'approval_required']),
+        type: z.enum([
+          'content_filter',
+          'tool_restriction',
+          'approval_required',
+        ]),
         rulesJson: rulesJsonSchema,
         enabled: z.boolean().default(true),
       }),
@@ -213,7 +290,9 @@ const policiesRouter = t.router({
       z.object({
         id: z.string().uuid(),
         data: nonEmptyObject({
-          type: z.enum(['content_filter', 'tool_restriction', 'approval_required']).optional(),
+          type: z
+            .enum(['content_filter', 'tool_restriction', 'approval_required'])
+            .optional(),
           rulesJson: rulesJsonSchema.optional(),
           enabled: z.boolean().optional(),
         }),
@@ -228,7 +307,10 @@ const policiesRouter = t.router({
       return updated ?? null;
     }),
   delete: memberProcedure.input(idInput).mutation(async ({ input }) => {
-    const [deleted] = await db.delete(policies).where(eq(policies.id, input.id)).returning({ id: policies.id });
+    const [deleted] = await db
+      .delete(policies)
+      .where(eq(policies.id, input.id))
+      .returning({ id: policies.id });
     return { id: deleted?.id ?? input.id, deleted: Boolean(deleted) };
   }),
   evaluateContent: memberProcedure
@@ -242,8 +324,12 @@ const policiesRouter = t.router({
       const enabledPolicies = await db
         .select({ rulesJson: policies.rulesJson })
         .from(policies)
-        .where(and(eq(policies.enabled, true), eq(policies.type, 'content_filter')));
-      const rulesList = enabledPolicies.map((policy) => policy.rulesJson as Record<string, unknown>);
+        .where(
+          and(eq(policies.enabled, true), eq(policies.type, 'content_filter')),
+        );
+      const rulesList = enabledPolicies.map(
+        (policy) => policy.rulesJson as Record<string, unknown>,
+      );
       const result = evaluateContentPolicies(input.text, rulesList);
       await logAuditEvent({
         ...ctxActor(ctx),
@@ -267,9 +353,20 @@ const policiesRouter = t.router({
       const enabledPolicies = await db
         .select({ rulesJson: policies.rulesJson })
         .from(policies)
-        .where(and(eq(policies.enabled, true), eq(policies.type, 'tool_restriction')));
-      const rulesList = enabledPolicies.map((policy) => policy.rulesJson as Record<string, unknown>);
-      const result = evaluateToolPolicies(input.toolName, input.role ?? null, rulesList);
+        .where(
+          and(
+            eq(policies.enabled, true),
+            eq(policies.type, 'tool_restriction'),
+          ),
+        );
+      const rulesList = enabledPolicies.map(
+        (policy) => policy.rulesJson as Record<string, unknown>,
+      );
+      const result = evaluateToolPolicies(
+        input.toolName,
+        input.role ?? null,
+        rulesList,
+      );
       await logAuditEvent({
         ...ctxActor(ctx),
         action: 'policy.tool.evaluate',
@@ -305,28 +402,36 @@ const policyRouter = t.router({
 });
 
 const auditRouter = t.router({
-  list: authedProcedure.input(paginationInput.optional()).query(async ({ input }) => {
-    const limit = input?.limit ?? 20;
-    const offset = input?.offset ?? 0;
-    const whereClause = input?.query
-      ? or(
-          ilike(auditEntries.actorId, `%${input.query}%`),
-          ilike(auditEntries.action, `%${input.query}%`),
-          ilike(auditEntries.detail, `%${input.query}%`),
-        )
-      : undefined;
-    const itemsQuery = db
+  list: authedProcedure
+    .input(paginationInput.optional())
+    .query(async ({ input }) => {
+      const limit = input?.limit ?? 20;
+      const offset = input?.offset ?? 0;
+      const whereClause = input?.query
+        ? or(
+            ilike(auditEntries.actorId, `%${input.query}%`),
+            ilike(auditEntries.action, `%${input.query}%`),
+            ilike(auditEntries.detail, `%${input.query}%`),
+          )
+        : undefined;
+      const itemsQuery = db
+        .select()
+        .from(auditEntries)
+        .orderBy(desc(auditEntries.createdAt))
+        .limit(limit)
+        .offset(offset);
+      const items = whereClause
+        ? await itemsQuery.where(whereClause)
+        : await itemsQuery;
+      const total = await countRows(auditEntries, whereClause);
+      return { items, total, limit, offset };
+    }),
+  get: authedProcedure.input(idInput).query(async ({ input }) => {
+    const [item] = await db
       .select()
       .from(auditEntries)
-      .orderBy(desc(auditEntries.createdAt))
-      .limit(limit)
-      .offset(offset);
-    const items = whereClause ? await itemsQuery.where(whereClause) : await itemsQuery;
-    const total = await countRows(auditEntries, whereClause);
-    return { items, total, limit, offset };
-  }),
-  get: authedProcedure.input(idInput).query(async ({ input }) => {
-    const [item] = await db.select().from(auditEntries).where(eq(auditEntries.id, input.id)).limit(1);
+      .where(eq(auditEntries.id, input.id))
+      .limit(1);
     return item ?? null;
   }),
   create: memberProcedure
@@ -351,33 +456,40 @@ const auditRouter = t.router({
       await logAuditEvent({
         ...ctxActor(ctx),
         action: 'audit.entry.created',
-        detail: JSON.stringify({ entryId: created.id, sourceAction: input.action }),
+        detail: JSON.stringify({
+          entryId: created.id,
+          sourceAction: input.action,
+        }),
       });
       return created;
     }),
 });
 
 const approvalsRouter = t.router({
-  list: authedProcedure.input(paginationInput.optional()).query(async ({ input }) => {
-    const limit = input?.limit ?? 20;
-    const offset = input?.offset ?? 0;
-    const whereClause = input?.query
-      ? or(
-          ilike(approvalRequests.actionType, `%${input.query}%`),
-          ilike(approvalRequests.state, `%${input.query}%`),
-          ilike(approvalRequests.agentId, `%${input.query}%`),
-        )
-      : undefined;
-    const itemsQuery = db
-      .select()
-      .from(approvalRequests)
-      .orderBy(desc(approvalRequests.requestedAt))
-      .limit(limit)
-      .offset(offset);
-    const items = whereClause ? await itemsQuery.where(whereClause) : await itemsQuery;
-    const total = await countRows(approvalRequests, whereClause);
-    return { items, total, limit, offset };
-  }),
+  list: authedProcedure
+    .input(paginationInput.optional())
+    .query(async ({ input }) => {
+      const limit = input?.limit ?? 20;
+      const offset = input?.offset ?? 0;
+      const whereClause = input?.query
+        ? or(
+            ilike(approvalRequests.actionType, `%${input.query}%`),
+            ilike(approvalRequests.state, `%${input.query}%`),
+            ilike(approvalRequests.agentId, `%${input.query}%`),
+          )
+        : undefined;
+      const itemsQuery = db
+        .select()
+        .from(approvalRequests)
+        .orderBy(desc(approvalRequests.requestedAt))
+        .limit(limit)
+        .offset(offset);
+      const items = whereClause
+        ? await itemsQuery.where(whereClause)
+        : await itemsQuery;
+      const total = await countRows(approvalRequests, whereClause);
+      return { items, total, limit, offset };
+    }),
   get: authedProcedure.input(idInput).query(async ({ input }) => {
     const [item] = await db
       .select()
@@ -392,7 +504,9 @@ const approvalsRouter = t.router({
         agentId: z.string().uuid(),
         actionType: z.string().min(1),
         params: paramsSchema.default({}),
-        state: z.enum(['pending', 'approved', 'rejected', 'expired']).default('pending'),
+        state: z
+          .enum(['pending', 'approved', 'rejected', 'expired'])
+          .default('pending'),
         requestedAt: z.coerce.date().optional(),
         decidedBy: z.string().uuid().nullable().optional(),
       }),
@@ -427,7 +541,9 @@ const approvalsRouter = t.router({
         data: nonEmptyObject({
           actionType: z.string().min(1).optional(),
           params: paramsSchema.optional(),
-          state: z.enum(['pending', 'approved', 'rejected', 'expired']).optional(),
+          state: z
+            .enum(['pending', 'approved', 'rejected', 'expired'])
+            .optional(),
           requestedAt: z.coerce.date().optional(),
           decidedBy: z.string().uuid().nullable().optional(),
         }),
@@ -482,8 +598,15 @@ const approvalsRouter = t.router({
       const enabledPolicies = await db
         .select({ rulesJson: policies.rulesJson })
         .from(policies)
-        .where(and(eq(policies.enabled, true), eq(policies.type, 'approval_required')));
-      const rulesList = enabledPolicies.map((policy) => policy.rulesJson as Record<string, unknown>);
+        .where(
+          and(
+            eq(policies.enabled, true),
+            eq(policies.type, 'approval_required'),
+          ),
+        );
+      const rulesList = enabledPolicies.map(
+        (policy) => policy.rulesJson as Record<string, unknown>,
+      );
       const evaluation = evaluateApprovalPolicies(
         input.actionType,
         input.toolName,
@@ -551,7 +674,10 @@ const approvalsRouter = t.router({
         .where(eq(approvalRequests.id, input.id))
         .limit(1);
       if (!existing) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Approval request not found' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Approval request not found',
+        });
       }
       if (
         !canTransitionApprovalState(
@@ -559,14 +685,20 @@ const approvalsRouter = t.router({
           input.decision,
         )
       ) {
-        throw new TRPCError({ code: 'CONFLICT', message: 'Approval request is not pending' });
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Approval request is not pending',
+        });
       }
 
       const [updated] = await db
         .update(approvalRequests)
         .set({
           state: input.decision,
-          decidedBy: ctx.userId && /^[0-9a-fA-F-]{36}$/.test(ctx.userId) ? ctx.userId : null,
+          decidedBy:
+            ctx.userId && /^[0-9a-fA-F-]{36}$/.test(ctx.userId)
+              ? ctx.userId
+              : null,
         })
         .where(eq(approvalRequests.id, input.id))
         .returning();
@@ -591,23 +723,36 @@ const approvalsRouter = t.router({
 });
 
 const documentsRouter = t.router({
-  list: authedProcedure.input(paginationInput.optional()).query(async ({ input }) => {
-    const limit = input?.limit ?? 20;
-    const offset = input?.offset ?? 0;
-    const whereClause = input?.query
-      ? or(
-          ilike(documents.filename, `%${input.query}%`),
-          ilike(documents.mimeType, `%${input.query}%`),
-          ilike(documents.storagePath, `%${input.query}%`),
-        )
-      : undefined;
-    const itemsQuery = db.select().from(documents).orderBy(desc(documents.createdAt)).limit(limit).offset(offset);
-    const items = whereClause ? await itemsQuery.where(whereClause) : await itemsQuery;
-    const total = await countRows(documents, whereClause);
-    return { items, total, limit, offset };
-  }),
+  list: authedProcedure
+    .input(paginationInput.optional())
+    .query(async ({ input }) => {
+      const limit = input?.limit ?? 20;
+      const offset = input?.offset ?? 0;
+      const whereClause = input?.query
+        ? or(
+            ilike(documents.filename, `%${input.query}%`),
+            ilike(documents.mimeType, `%${input.query}%`),
+            ilike(documents.storagePath, `%${input.query}%`),
+          )
+        : undefined;
+      const itemsQuery = db
+        .select()
+        .from(documents)
+        .orderBy(desc(documents.createdAt))
+        .limit(limit)
+        .offset(offset);
+      const items = whereClause
+        ? await itemsQuery.where(whereClause)
+        : await itemsQuery;
+      const total = await countRows(documents, whereClause);
+      return { items, total, limit, offset };
+    }),
   get: authedProcedure.input(idInput).query(async ({ input }) => {
-    const [item] = await db.select().from(documents).where(eq(documents.id, input.id)).limit(1);
+    const [item] = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.id, input.id))
+      .limit(1);
     return item ?? null;
   }),
   create: memberProcedure

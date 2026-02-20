@@ -16,14 +16,21 @@ export async function evaluateMessageContent(input: {
   const enabledPolicies = await db
     .select({ rulesJson: policies.rulesJson })
     .from(policies)
-    .where(and(eq(policies.enabled, true), eq(policies.type, 'content_filter')));
-  const rulesList = enabledPolicies.map((policy) => policy.rulesJson as Record<string, unknown>);
+    .where(
+      and(eq(policies.enabled, true), eq(policies.type, 'content_filter')),
+    );
+  const rulesList = enabledPolicies.map(
+    (policy) => policy.rulesJson as Record<string, unknown>,
+  );
   const result = evaluateContentPolicies(input.text, rulesList);
   await logAuditEvent({
     actorId: input.actorId,
     actorType: 'agent',
     action: `policy.content.${input.direction}`,
-    detail: JSON.stringify({ allowed: result.allowed, reasons: result.reasons }),
+    detail: JSON.stringify({
+      allowed: result.allowed,
+      reasons: result.reasons,
+    }),
   });
   return result;
 }

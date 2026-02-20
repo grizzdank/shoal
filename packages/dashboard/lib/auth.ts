@@ -3,7 +3,10 @@ import Google from 'next-auth/providers/google';
 
 const providers = [];
 
-if (process.env.AUTH_GOOGLE_CLIENT_ID && process.env.AUTH_GOOGLE_CLIENT_SECRET) {
+if (
+  process.env.AUTH_GOOGLE_CLIENT_ID &&
+  process.env.AUTH_GOOGLE_CLIENT_SECRET
+) {
   providers.push(
     Google({
       clientId: process.env.AUTH_GOOGLE_CLIENT_ID,
@@ -26,7 +29,8 @@ export const authConfig: NextAuthConfig = {
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as { role?: string }).role = typeof token.role === 'string' ? token.role : 'admin';
+        (session.user as { role?: string }).role =
+          typeof token.role === 'string' ? token.role : 'admin';
       }
       return session;
     },

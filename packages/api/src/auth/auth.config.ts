@@ -10,5 +10,6 @@ export const authConfig: AuthConfig = {
 
 export const authProvidersNote = {
   google: 'Configure Google OAuth in production via Auth.js provider setup',
-  email: 'Configure Email provider (SMTP) in production via Auth.js provider setup',
+  email:
+    'Configure Email provider (SMTP) in production via Auth.js provider setup',
 };

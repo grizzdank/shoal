@@ -19,13 +19,13 @@ Tymbal is a transport-agnostic streaming protocol for agent chat. Relevant for S
 
 ### Shoal Application
 
-| Tymbal Concept | Shoal Use |
-|---|---|
-| NDJSON streaming | Dashboard real-time agent activity feed |
-| Sender attribution | Audit trail — which agent said/did what |
-| Sync protocol | Admin dashboard reconnect without state loss |
-| Status messages | Agent health/activity indicators in admin UI |
-| Thinking traces | Governance: reasoning audit for compliance review |
+| Tymbal Concept     | Shoal Use                                         |
+| ------------------ | ------------------------------------------------- |
+| NDJSON streaming   | Dashboard real-time agent activity feed           |
+| Sender attribution | Audit trail — which agent said/did what           |
+| Sync protocol      | Admin dashboard reconnect without state loss      |
+| Status messages    | Agent health/activity indicators in admin UI      |
+| Thinking traces    | Governance: reasoning audit for compliance review |
 
 ---
 
@@ -40,11 +40,16 @@ Their multi-agent coordination uses a **Lead agent** as facilitator, not impleme
 1. **Lead protects its context** — Never does implementation work. "Every line of code you write is context you can't use to think about the project as a whole." The Lead understands requests, creates plans, assembles teams, keeps work moving.
 
 2. **Compare-and-swap task claiming** — Agents claim tasks atomically via `artifact_update` with `old_value`/`new_value` checks. Prevents race conditions when multiple agents grab work. Pattern:
+
    ```json
    {
      "slug": "implement-login",
      "changes": [
-       { "field": "status", "old_value": "pending", "new_value": "in_progress" },
+       {
+         "field": "status",
+         "old_value": "pending",
+         "new_value": "in_progress"
+       },
        { "field": "assignees", "old_value": [], "new_value": ["agent-1"] }
      ]
    }
@@ -79,7 +84,7 @@ Three-tier memory mimicking human cognition:
 ```
 Working Memory (recent, full detail)
     ↓ recursive distillation
-Reference Memory (weeks, compressed paragraphs)  
+Reference Memory (weeks, compressed paragraphs)
     ↓ further compression
 Core Memory (months, key facts/decisions)
 ```
@@ -91,12 +96,12 @@ Core Memory (months, key facts/decisions)
 
 ### Comparison to Current Stack (Profundo)
 
-| | Profundo | Nuum |
-|---|---|---|
-| **Approach** | Flat semantic search over session chunks | Temporal compression with density gradients |
-| **Strength** | Good at finding specific past conversations | Better at maintaining continuous context |
-| **Weakness** | No compression, no temporal weighting | More complex, requires distillation pipeline |
-| **Storage** | Embeddings in vector DB | SQLite with compressed summaries |
+|              | Profundo                                    | Nuum                                         |
+| ------------ | ------------------------------------------- | -------------------------------------------- |
+| **Approach** | Flat semantic search over session chunks    | Temporal compression with density gradients  |
+| **Strength** | Good at finding specific past conversations | Better at maintaining continuous context     |
+| **Weakness** | No compression, no temporal weighting       | More complex, requires distillation pipeline |
+| **Storage**  | Embeddings in vector DB                     | SQLite with compressed summaries             |
 
 ### Shoal Application
 
@@ -132,8 +137,8 @@ Miriad provides data points for the Shoal narrative:
 
 ---
 
-*Last updated: 2026-02-14*
-*Sources: Miriad design-notes (MIT), Nuum README (MIT), miriad.systems*
+_Last updated: 2026-02-14_
+_Sources: Miriad design-notes (MIT), Nuum README (MIT), miriad.systems_
 
 ## Network Observability — rano
 
@@ -143,6 +148,7 @@ Miriad provides data points for the Shoal narrative:
 Rust-based network observer for AI agent processes. Polls `/proc`, maps sockets → PIDs → provider attribution (Anthropic/OpenAI/Google/unknown), logs to SQLite.
 
 ### Relevant Features for Shoal
+
 - **Session diffing** — behavioral drift detection between monitoring windows
 - **Alert thresholds** — domain globs, connection limits, unknown domain detection
 - **JSON output** — structured event stream for ingestion
@@ -150,6 +156,7 @@ Rust-based network observer for AI agent processes. Polls `/proc`, maps sockets 
 - **Provider-aware** — automatic tagging of API traffic by vendor
 
 ### Integration Points
+
 - Data source for Shoal's policy evaluation engine (network-layer audit trail)
 - Policy violation evidence (agent called unauthorized endpoint)
 - Cost attribution per agent/session
@@ -157,10 +164,12 @@ Rust-based network observer for AI agent processes. Polls `/proc`, maps sockets 
 - Compliance reporting (`rano report --json`)
 
 ### Gaps (Shoal fills)
+
 - No payload inspection (sees destinations, not content)
 - Observes but doesn't block (Shoal = enforcement)
 - Single-machine (Shoal aggregates across tenants)
 - Linux-only (`/proc` dependency)
 
 ### Status
+
 Evaluating as component dependency. MIT license — clean for commercial use.
