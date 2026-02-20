@@ -11,7 +11,8 @@
     "lint": "tsc --noEmit -p tsconfig.json",
     "test": "node --import tsx --test src/**/*.test.ts",
     "db:migrate": "drizzle-kit push",
-    "db:check": "drizzle-kit check"
+    "db:check": "drizzle-kit check",
+    "seed": "node --import tsx ../../seed/seed.ts"
   },
   "dependencies": {
     "@auth/core": "^0.37.2",
