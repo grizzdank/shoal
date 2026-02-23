@@ -198,13 +198,17 @@ async function bootstrap() {
           rawUserRole === 'viewer'
             ? rawUserRole
             : null;
+        const isDev = process.env.NODE_ENV !== 'production';
+        const resolvedUserId =
+          typeof req.headers['x-shoal-user-id'] === 'string'
+            ? req.headers['x-shoal-user-id']
+            : isDev ? 'dev@shoal.local' : null;
+        const resolvedUserRole: 'admin' | 'member' | 'viewer' | null =
+          userRole ?? (isDev ? 'admin' : null);
         return {
           authHeader: typeof rawAuthHeader === 'string' ? rawAuthHeader : null,
-          userId:
-            typeof req.headers['x-shoal-user-id'] === 'string'
-              ? req.headers['x-shoal-user-id']
-              : null,
-          userRole,
+          userId: resolvedUserId,
+          userRole: resolvedUserRole,
         };
       },
     }),

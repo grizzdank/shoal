@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 
-const providers = [];
+const providers: NextAuthConfig['providers'] = [];
 
 if (
   process.env.AUTH_GOOGLE_CLIENT_ID &&

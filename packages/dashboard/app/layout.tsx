@@ -10,9 +10,12 @@ export default async function RootLayout({
 }: {
   children: ReactNode;
 }) {
-  const session = await auth();
+  const isDevMode = !process.env.AUTH_GOOGLE_CLIENT_ID;
+  const session = isDevMode
+    ? { user: { name: 'Dev User', email: 'dev@shoal.local' }, expires: '2099-01-01' }
+    : await auth();
 
-  if (!session) {
+  if (!isDevMode && !session) {
     redirect('/api/auth/signin' as never);
   }
 
