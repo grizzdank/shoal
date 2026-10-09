@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shoal
+      POSTGRES_USER: shoal
+      POSTGRES_PASSWORD: shoal_dev_2026
+    ports:
+      - '5433:5432'
+    volumes:
+      - shoal_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U shoal']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://shoal:shoal_dev_2026@postgres:5432/shoal
+      NODE_ENV: development
+      PORT: '3001'
+      DASHBOARD_ORIGIN: http://100.82.195.75:3000
+    ports:
+      - '3001:3001'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: packages/dashboard/Dockerfile
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://100.82.195.75:3001
+      NEXTAUTH_URL: http://100.82.195.75:3000
+      AUTH_URL: http://100.82.195.75:3000
+      NODE_ENV: development
+      PORT: '3000'
+      AUTH_SECRET: shoal_dev_auth_secret_2026
+    ports:
+      - '3000:3000'
+    depends_on:
+      - api
+
+volumes:
+  shoal_pgdata:

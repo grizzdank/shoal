@@ -1,0 +1,13 @@
+{
+  "name": "shoal-governance",
+  "version": "0.1.0",
+  "entry": "dist/index.js",
+  "description": "Shoal governance plugin for OpenClaw",
+  "hooks": [
+    "message_received",
+    "message_sending",
+    "before_tool_call",
+    "tool_result_persist",
+    "before_agent_start"
+  ]
+}
